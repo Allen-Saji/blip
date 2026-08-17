@@ -1,0 +1,26 @@
+blip.allensaji.dev {
+	reverse_proxy 127.0.0.1:3000
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+	}
+
+	encode gzip
+
+	log {
+		output file /var/log/caddy/blip-access.log
+	}
+}
+
+http:// {
+	@ip_host host 167.71.224.198
+	handle @ip_host {
+		redir https://blip.allensaji.dev{uri} 308
+	}
+	handle {
+		respond "Misdirected Request" 421
+	}
+}

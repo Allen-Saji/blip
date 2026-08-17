@@ -1,0 +1,18 @@
+[Unit]
+Description=Blip job worker and scheduler
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=allen
+WorkingDirectory=/home/allen/blip
+EnvironmentFile=/opt/blip/worker.env
+ExecStart=/usr/local/bin/tsx /home/allen/blip/worker.ts
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/blip-worker.log
+StandardError=append:/var/log/blip-worker.log
+
+[Install]
+WantedBy=multi-user.target

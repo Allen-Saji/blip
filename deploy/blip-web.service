@@ -1,0 +1,20 @@
+[Unit]
+Description=Blip web frontend and API
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=allen
+WorkingDirectory=/home/allen/blip
+EnvironmentFile=/opt/blip/worker.env
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+ExecStart=/home/allen/blip/node_modules/next/dist/bin/next start -p 3000 -H 127.0.0.1
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/blip-web.log
+StandardError=append:/var/log/blip-web.log
+
+[Install]
+WantedBy=multi-user.target
