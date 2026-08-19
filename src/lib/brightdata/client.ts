@@ -206,6 +206,7 @@ export function getSelfHealProgress(
 
 /**
  * Approve (or reject) a self-healing job that is awaiting approval.
+ * `auto_save: true` persists the fix to the live collector in the same step.
  */
 export function resumeSelfHeal(
   collectorId: CollectorId,
@@ -213,6 +214,6 @@ export function resumeSelfHeal(
 ): Promise<unknown> {
   return request(`/dca/collectors/${collectorId}/resume_automation_job`, {
     method: "POST",
-    body: { message: approve },
+    body: { message: approve, auto_save: true },
   });
 }

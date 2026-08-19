@@ -271,6 +271,12 @@ async function handleHeal(job: JobRow) {
 
   if (progress.status === "pending_answer") {
     await brightdata.resumeSelfHeal(collectorId, true);
+    // Wait for the approved template to be persisted before re-running.
+    await pollUntil(
+      () => brightdata.getSelfHealProgress(collectorId),
+      (p) => p.status === "done",
+      HEAL_TIMEOUT_MS,
+    );
   }
 
   await enqueueJob("run", w.id);
