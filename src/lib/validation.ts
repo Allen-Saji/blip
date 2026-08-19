@@ -4,6 +4,7 @@ export const createWatchSchema = z.object({
   url: z.string().url().max(2048),
   description: z.string().min(3).max(1000),
   cadence: z.enum(["hourly", "daily", "weekly"]).default("daily"),
+  email: z.string().email().max(254).optional(),
 });
 
 export function validateUrl(url: string): string | null {

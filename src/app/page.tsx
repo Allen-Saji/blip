@@ -7,6 +7,7 @@ export default function Home() {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -19,7 +20,12 @@ export default function Home() {
       const res = await fetch("/api/watches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, description, cadence: "daily" }),
+        body: JSON.stringify({
+          url,
+          description,
+          cadence: "daily",
+          email: email.trim() || undefined,
+        }),
       });
 
       const data = await res.json();
@@ -72,6 +78,14 @@ export default function Home() {
             className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none"
           />
 
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com — get the diff by email (optional)"
+            className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+          />
+
           <button
             type="submit"
             disabled={loading}
@@ -84,7 +98,8 @@ export default function Home() {
         </form>
 
         <p className="mt-6 text-xs text-neutral-400">
-          No signup needed. One free watch per guest. Save more with an account.
+          No signup needed. One free watch per guest — add your email to get the
+          diff in your inbox.
         </p>
       </div>
     </main>

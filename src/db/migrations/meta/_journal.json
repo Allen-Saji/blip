@@ -8,6 +8,13 @@
       "when": 1786952867940,
       "tag": "0000_mean_thaddeus_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787159267579,
+      "tag": "0001_add_watch_email",
+      "breakpoints": true
     }
   ]
 }

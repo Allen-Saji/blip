@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       url: parsed.data.url,
       description: parsed.data.description,
       cadence: parsed.data.cadence,
+      email: parsed.data.email ?? null,
       status: "creating",
     })
     .returning();

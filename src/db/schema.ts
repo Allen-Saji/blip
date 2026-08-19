@@ -23,6 +23,8 @@ export const watches = pgTable(
     userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
     // Guest watches have no user; identified by a session cookie.
     sessionId: text("session_id"),
+    // Where to send the change email (Resend). Optional: in-app only if unset.
+    email: text("email"),
     url: text("url").notNull(),
     description: text("description").notNull(),
     cadence: text("cadence").notNull().default("daily"), // hourly | daily | weekly

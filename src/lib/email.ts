@@ -4,6 +4,8 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
+const FROM = process.env.RESEND_FROM ?? "Blip <onboarding@resend.dev>";
+
 export async function sendChangeEmail(opts: {
   to: string;
   watchUrl: string;
@@ -15,8 +17,8 @@ export async function sendChangeEmail(opts: {
     return;
   }
 
-  await resend.emails.send({
-    from: "Blip <blip@yourdomain.com>",
+  const { error } = await resend.emails.send({
+    from: FROM,
     to: opts.to,
     subject: `Blip: change detected on ${opts.watchUrl}`,
     html: `
@@ -32,4 +34,8 @@ export async function sendChangeEmail(opts: {
       </div>
     `,
   });
+
+  if (error) {
+    throw new Error(`Resend send failed: ${error.message}`);
+  }
 }

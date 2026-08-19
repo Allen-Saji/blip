@@ -201,14 +201,39 @@ async function handleRun(job: JobRow) {
   if (beforeJson) {
     const result = diffSnapshots(beforeJson, afterJson);
     if (result.diff.length > 0) {
-      await db.insert(changes).values({
-        watchId: w.id,
-        runId: run[0].id,
-        beforeJson: beforeJson as never,
-        afterJson: afterJson as never,
-        summary: result.summary,
-      });
-      // Notification send happens in a later step; enqueue nothing here yet.
+      const inserted = await db
+        .insert(changes)
+        .values({
+          watchId: w.id,
+          runId: run[0].id,
+          beforeJson: beforeJson as never,
+          afterJson: afterJson as never,
+          summary: result.summary,
+        })
+        .returning();
+
+      // Email-on-change is best-effort: a notification failure must not fail
+      // the run (the change row is already durable).
+      if (w.email) {
+        try {
+          const { sendChangeEmail } = await import("../email");
+          await sendChangeEmail({
+            to: w.email,
+            watchUrl: w.url,
+            watchDescription: w.description,
+            summary: result.summary,
+          });
+          await db
+            .update(changes)
+            .set({ notifiedAt: new Date() })
+            .where(eq(changes.id, inserted[0].id));
+        } catch (err) {
+          console.error(
+            `email for watch ${w.id} failed:`,
+            err instanceof Error ? err.message : err,
+          );
+        }
+      }
     }
     if (result.hasMissingFields) {
       await enqueueJob("heal", w.id, {
