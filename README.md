@@ -1,10 +1,15 @@
-# Blip
+<div align="center">
+  <img src="src/app/favicon.ico" alt="Blip logo" width="72" height="72">
+  <h1>Blip</h1>
+  <p><strong>You never miss a blip.</strong></p>
 
-**You never miss a blip.**
+  <p>
+    <a href="https://blip.allensaji.dev">Live demo</a> ·
+    Built with <a href="https://brightdata.com/products/scraper-studio">Bright Data Scraper Studio</a>
+  </p>
+</div>
 
 Blip is a self-healing change monitor for the web. Paste a URL, describe what matters in plain English, and Blip watches it for you. When the value you care about changes, you get a clean, human-readable diff by email. When the site redesigns itself and the scraper breaks, Blip repairs it automatically.
-
-[Live demo](https://blip.allensaji.dev) · Built with [Bright Data Scraper Studio](https://brightdata.com/products/scraper-studio)
 
 ---
 
