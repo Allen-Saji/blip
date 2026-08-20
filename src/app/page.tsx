@@ -140,6 +140,7 @@ export default function Home() {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
+  const [alertRule, setAlertRule] = useState("any meaningful change");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -157,6 +158,7 @@ export default function Home() {
         body: JSON.stringify({
           url,
           description,
+          alertRule,
           cadence: "daily",
           email: email.trim() || undefined,
         }),
@@ -305,6 +307,23 @@ export default function Home() {
                     placeholder="you@example.com"
                     className="w-full rounded-lg border border-black/10 bg-white px-4 py-3 text-[15px] text-black placeholder:text-black/40 focus:border-[#0075de] focus:outline-none focus:ring-2 focus:ring-[#0075de]/20"
                   />
+                </div>
+
+                <div>
+                  <label htmlFor="alertRule" className="mb-1.5 block text-sm font-medium text-black/90">
+                    Alert rule
+                  </label>
+                  <input
+                    id="alertRule"
+                    type="text"
+                    value={alertRule}
+                    onChange={(e) => setAlertRule(e.target.value)}
+                    placeholder="price drops below $120"
+                    className="w-full rounded-lg border border-black/10 bg-white px-4 py-3 text-[15px] text-black placeholder:text-black/40 focus:border-[#0075de] focus:outline-none focus:ring-2 focus:ring-[#0075de]/20"
+                  />
+                  <p className="mt-1.5 text-xs text-black/40">
+                    Examples: price drops below $120, back in stock, or any meaningful change.
+                  </p>
                 </div>
 
                 <button

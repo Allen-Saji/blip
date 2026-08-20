@@ -7,6 +7,7 @@ type Watch = {
   id: string;
   url: string;
   description: string;
+  alertRule: string;
   status: string;
   collectorId: string | null;
   lastRunAt: string | null;
@@ -26,6 +27,7 @@ type Change = {
     summary: string;
     beforeJson: unknown;
     afterJson: unknown;
+    classification: string;
     createdAt: string;
   };
   watchUrl: string;
@@ -108,6 +110,9 @@ export default function Dashboard() {
                     <p className="mt-1 text-sm text-neutral-500 line-clamp-2">
                       {watch.description}
                     </p>
+                    <p className="mt-2 text-xs text-neutral-400">
+                      Alert: {watch.alertRule}
+                    </p>
                   </div>
                   <span
                     className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
@@ -183,9 +188,14 @@ export default function Dashboard() {
                   <summary className="cursor-pointer list-none p-4 [&::-webkit-details-marker]:hidden">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-neutral-900">
-                          {change.summary}
-                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-medium text-neutral-900">
+                            {change.summary}
+                          </p>
+                          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-500">
+                            {change.classification.replaceAll("_", " ")}
+                          </span>
+                        </div>
                         <p className="mt-1 truncate text-xs text-neutral-400">
                           {watchUrl}
                         </p>

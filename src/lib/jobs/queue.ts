@@ -3,6 +3,7 @@ import { jobs, watches, runs, changes } from "../../db/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 import * as brightdata from "../brightdata/client";
 import { diffSnapshots } from "../diff/engine";
+import { classifyChange } from "../alerts/rules";
 import { validateHealingPreview } from "../healing/validator";
 
 const POLL_INTERVAL_MS = 5000;
@@ -201,6 +202,7 @@ async function handleRun(job: JobRow) {
   // semantically changed.
   if (beforeJson) {
     const result = diffSnapshots(beforeJson, afterJson);
+    const classification = classifyChange(result, w.alertRule);
     if (result.diff.length > 0) {
       const inserted = await db
         .insert(changes)
@@ -210,12 +212,13 @@ async function handleRun(job: JobRow) {
           beforeJson: beforeJson as never,
           afterJson: afterJson as never,
           summary: result.summary,
+          classification: classification.classification,
         })
         .returning();
 
       // Email-on-change is best-effort: a notification failure must not fail
       // the run (the change row is already durable).
-      if (w.email) {
+      if (w.email && classification.matched) {
         try {
           const { sendChangeEmail } = await import("../email");
           await sendChangeEmail({

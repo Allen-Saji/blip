@@ -1,0 +1,2 @@
+ALTER TABLE "changes" ADD COLUMN "classification" text DEFAULT 'meaningful_change' NOT NULL;--> statement-breakpoint
+ALTER TABLE "watches" ADD COLUMN "alert_rule" text DEFAULT 'any meaningful change' NOT NULL;

@@ -27,6 +27,7 @@ export const watches = pgTable(
     email: text("email"),
     url: text("url").notNull(),
     description: text("description").notNull(),
+    alertRule: text("alert_rule").notNull().default("any meaningful change"),
     cadence: text("cadence").notNull().default("daily"), // hourly | daily | weekly
     channel: text("channel").notNull().default("email"),
     collectorId: text("collector_id"), // c_* (null until created)
@@ -72,6 +73,9 @@ export const changes = pgTable(
     beforeJson: jsonb("before_json"),
     afterJson: jsonb("after_json"),
     summary: text("summary").notNull(),
+    classification: text("classification")
+      .notNull()
+      .default("meaningful_change"),
     notifiedAt: timestamp("notified_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },

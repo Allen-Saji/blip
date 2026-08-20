@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
       sessionId,
       url: parsed.data.url,
       description: parsed.data.description,
+      alertRule: parsed.data.alertRule,
       cadence: parsed.data.cadence,
       email: parsed.data.email ?? null,
       status: "creating",
