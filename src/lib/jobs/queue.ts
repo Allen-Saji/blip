@@ -171,7 +171,7 @@ async function handleRun(job: JobRow) {
     .select()
     .from(runs)
     .where(and(eq(runs.watchId, w.id), eq(runs.status, "succeeded")))
-    .orderBy(runs.finishedAt)
+    .orderBy(desc(runs.finishedAt))
     .limit(1);
 
   const beforeJson = prevRun[0]?.rawJson ?? null;
