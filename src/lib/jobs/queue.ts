@@ -1,8 +1,9 @@
 import { db } from "../../db";
 import { jobs, watches, runs, changes } from "../../db/schema";
-import { eq, sql, and } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import * as brightdata from "../brightdata/client";
 import { diffSnapshots } from "../diff/engine";
+import { validateHealingPreview } from "../healing/validator";
 
 const POLL_INTERVAL_MS = 5000;
 const CREATE_TIMEOUT_MS = 25 * 60 * 1000;
@@ -263,6 +264,13 @@ async function handleHeal(job: JobRow) {
   const prompt = buildHealPrompt(w.description);
   await brightdata.triggerSelfHeal(collectorId, prompt);
 
+  const previousRun = await db
+    .select({ rawJson: runs.rawJson })
+    .from(runs)
+    .where(and(eq(runs.watchId, w.id), eq(runs.status, "succeeded")))
+    .orderBy(desc(runs.finishedAt))
+    .limit(1);
+
   const progress = await pollUntil(
     () => brightdata.getSelfHealProgress(collectorId),
     (p) => p.status === "pending_answer" || p.status === "done",
@@ -270,6 +278,15 @@ async function handleHeal(job: JobRow) {
   );
 
   if (progress.status === "pending_answer") {
+    const validation = validateHealingPreview(
+      previousRun[0]?.rawJson,
+      progress.preview_result,
+    );
+    if (!validation.valid) {
+      await brightdata.resumeSelfHeal(collectorId, false).catch(() => undefined);
+      throw new Error(`self-heal preview rejected: ${validation.reason}`);
+    }
+
     await brightdata.resumeSelfHeal(collectorId, true);
     // Wait for the approved template to be persisted before re-running.
     await pollUntil(
