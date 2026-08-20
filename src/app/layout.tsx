@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Blip — You never miss a blip.",
+  title: "Blip - You never miss a blip.",
   description:
     "Paste any URL, describe what matters in plain English, and Blip watches it. Self-healing web scrapers that email you a clean diff when things change.",
 };

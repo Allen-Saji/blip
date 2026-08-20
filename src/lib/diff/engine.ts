@@ -18,7 +18,7 @@ export type DiffEntry = {
 export type DiffResult = {
   diff: DiffEntry[];
   summary: string;
-  // True when fields that existed before went missing/null — the "site moved"
+  // True when fields that existed before went missing/null - the "site moved"
   // signal that should route to self-heal.
   hasMissingFields: boolean;
 };
@@ -41,7 +41,7 @@ export function deepDiff(
   after: unknown,
   path = "",
 ): DiffEntry[] {
-  // Both primitives (or null) — compare directly.
+  // Both primitives (or null) - compare directly.
   if (!isObject(before) && !isArray(before)) {
     if (before !== after) {
       return [{ path: path || "(root)", before, after }];
@@ -85,7 +85,7 @@ export function deepDiff(
     return entries;
   }
 
-  // Type mismatch (object vs array) — treat as a change at this path.
+  // Type mismatch (object vs array) - treat as a change at this path.
   return [{ path: path || "(root)", before, after }];
 }
 

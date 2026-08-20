@@ -7,9 +7,9 @@ import { readFile } from "fs/promises";
  *
  * The page's state is controlled by a JSON file on disk (default
  * /opt/blip/fixture-state.json on the droplet). States:
- *   { "state": "v1" }        — original layout, price $189, "In stock"
- *   { "state": "v2" }        — price drop to $109, "Low stock — 3 left"
- *   { "state": "redesign" }  — full layout change (new markup, price $79)
+ *   { "state": "v1" }        - original layout, price $189, "In stock"
+ *   { "state": "v2" }        - price drop to $109, "Low stock - 3 left"
+ *   { "state": "redesign" }  - full layout change (new markup, price $79)
  *
  * The redesign state breaks the original collector's selectors, so the next
  * Blip run returns empty → triggers self-heal → the collector is refactored
@@ -38,7 +38,7 @@ export async function GET() {
         "<!doctype html>",
         '<html lang="en"><head>',
         '<meta charset="utf-8">',
-        "<title>Aurora X9 — Wireless Earbuds</title>",
+        "<title>Aurora X9 - Wireless Earbuds</title>",
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
         "</head><body>",
         '<main class="product-shell">',
@@ -51,7 +51,7 @@ export async function GET() {
         '<p class="label">Price</p>',
         '<div class="amount">$79</div>',
         '<p class="label">Availability</p>',
-        '<div class="stock-badge">In stock — ships today</div>',
+        '<div class="stock-badge">In stock - ships today</div>',
         '<button class="buy-button">Add to cart</button>',
         "</section>",
         '<section class="specs">',
@@ -66,7 +66,7 @@ export async function GET() {
   }
 
   const price = state === "v2" ? "$109" : "$189";
-  const stock = state === "v2" ? "Low stock — 3 left" : "In stock";
+  const stock = state === "v2" ? "Low stock - 3 left" : "In stock";
   const rating = state === "v2" ? "4.6" : "4.8";
 
   return new NextResponse(
@@ -74,7 +74,7 @@ export async function GET() {
       "<!doctype html>",
       '<html lang="en"><head>',
       '<meta charset="utf-8">',
-      "<title>Aurora X9 — Wireless Earbuds</title>",
+      "<title>Aurora X9 - Wireless Earbuds</title>",
       '<meta name="viewport" content="width=device-width, initial-scale=1">',
       "</head><body>",
       '<div class="product-page">',

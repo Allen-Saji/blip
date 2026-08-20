@@ -56,7 +56,7 @@ export default function Home() {
 
         <p className="mt-5 text-lg text-neutral-500 leading-relaxed">
           Paste any URL. Describe what matters in plain English. Blip watches it
-          and emails you when it changes — even if the site redesigns itself.
+          and emails you when it changes - even if the site redesigns itself.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-10 space-y-3 text-left">
@@ -82,7 +82,7 @@ export default function Home() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com — get the diff by email (optional)"
+            placeholder="you@example.com - get the diff by email (optional)"
             className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900"
           />
 
@@ -98,7 +98,7 @@ export default function Home() {
         </form>
 
         <p className="mt-6 text-xs text-neutral-400">
-          No signup needed. One free watch per guest — add your email to get the
+          No signup needed. One free watch per guest - add your email to get the
           diff in your inbox.
         </p>
       </div>

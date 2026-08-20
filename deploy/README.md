@@ -1,4 +1,4 @@
-# Blip — production deployment
+# Blip - production deployment
 
 Blip runs self-hosted on a single DigitalOcean droplet. The frontend/API, the
 job worker, and Postgres all live on the same box, so the database stays

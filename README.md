@@ -2,18 +2,18 @@
 
 **You never miss a blip.**
 
-Paste any URL, describe what matters in plain English, and Blip watches it. When the thing you care about changes, you get a clean diff — even if the site redesigned itself overnight.
+Paste any URL, describe what matters in plain English, and Blip watches it. When the thing you care about changes, you get a clean diff - even if the site redesigned itself overnight.
 
 Built for [Into the Scrape-Verse](https://wemakedevs.org/hackathons) (WeMakeDevs × Bright Data, Aug 17–23, 2026).
 
 ## What it does
 
-Scrapers work in testing, then break quietly the first time a site changes a class name. Google Alerts only matches keywords — it can't watch *a specific value* on *a specific page*. Blip is a personal change monitor where the self-healing is the product:
+Scrapers work in testing, then break quietly the first time a site changes a class name. Google Alerts only matches keywords - it can't watch *a specific value* on *a specific page*. Blip is a personal change monitor where the self-healing is the product:
 
 1. **Describe once.** Paste a URL and describe the field you care about in plain language ("the price", "whether it's in stock"). No selectors, no code.
 2. **Watch.** [Bright Data Scraper Studio](https://brightdata.com/products/scraper-studio) extracts that field as structured data. Blip snapshots it on a schedule.
 3. **Detect.** When the structured output changes, Blip diffs it and produces a human-readable "what changed" message.
-4. **Self-heal.** When a site redesigns and extraction comes back empty, Blip hands Scraper Studio the original plain-language description. Scraper Studio rewrites the extraction, the collector heals, and the data keeps flowing — the user never sees a gap.
+4. **Self-heal.** When a site redesigns and extraction comes back empty, Blip hands Scraper Studio the original plain-language description. Scraper Studio rewrites the extraction, the collector heals, and the data keeps flowing - the user never sees a gap.
 
 The plain-language description is the source of truth, used for the initial scrape *and* for repair.
 
@@ -26,7 +26,7 @@ Guest-first: no signup. Paste a URL, type what to watch, and you get one free wa
 
 ## Architecture
 
-Blip is an async job system, not a request/response CRUD app — Bright Data's create (5–15 min), run (30–90 s), and self-heal (up to 15 min) operations all need durable tracking and polling.
+Blip is an async job system, not a request/response CRUD app - Bright Data's create (5–15 min), run (30–90 s), and self-heal (up to 15 min) operations all need durable tracking and polling.
 
 ```
 User                    Blip backend                         Bright Data
@@ -70,8 +70,8 @@ User                    Blip backend                         Bright Data
 
 The async reality genuinely needs durable jobs, but the job surface is tiny: three job types, each "do a thing, poll, then enqueue the next step." A Postgres-backed `jobs` table with `status`, `attempts`, `locked_at`, `next_run_at`, plus a single worker loop, is ~300 LOC with zero new infra. Two primitives make it correct:
 
-1. `SELECT ... FOR UPDATE SKIP LOCKED` to claim jobs — prevents two worker ticks from claiming the same job.
-2. **Idempotent handlers** — a crash mid-poll is safe to re-run. Every handler checks "is this step already done?" before doing work.
+1. `SELECT ... FOR UPDATE SKIP LOCKED` to claim jobs - prevents two worker ticks from claiming the same job.
+2. **Idempotent handlers** - a crash mid-poll is safe to re-run. Every handler checks "is this step already done?" before doing work.
 
 ### Self-heal flow
 
@@ -123,7 +123,7 @@ npx tsx worker.ts       # job worker + scheduler
 
 ```bash
 npx tsx src/lib/diff/engine.test.ts      # diff engine unit tests
-npx tsx scripts/brightdata-contract.ts   # live Bright Data contract test (uses real credits — run deliberately)
+npx tsx scripts/brightdata-contract.ts   # live Bright Data contract test (uses real credits - run deliberately)
 ```
 
 ## Roadmap / open items
