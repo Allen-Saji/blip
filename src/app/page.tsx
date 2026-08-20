@@ -209,13 +209,6 @@ export default function Home() {
             <button
               type="button"
               onClick={() => document.getElementById("watch")?.scrollIntoView({ behavior: "smooth" })}
-              className="hidden rounded-lg px-4 py-2 text-sm font-medium text-black/95 transition hover:bg-black/5 sm:block"
-            >
-              Sign in
-            </button>
-            <button
-              type="button"
-              onClick={() => document.getElementById("watch")?.scrollIntoView({ behavior: "smooth" })}
               className="rounded-lg bg-[#0075de] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0065c0]"
             >
               Watch a page

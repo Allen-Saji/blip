@@ -5,7 +5,7 @@ import { desc, eq, inArray } from "drizzle-orm";
 import { createWatchSchema, validateUrl } from "@/lib/validation";
 import { enqueueJob } from "@/lib/jobs/queue";
 
-// Guest watch limit: 1. Account watch limit: 3.
+// Session watch limit: 1.
 const GUEST_LIMIT = 1;
 
 function getSessionId(req: NextRequest): { id: string; isNew: boolean } {
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
   if (existing.length >= GUEST_LIMIT) {
     return NextResponse.json(
-      { error: "Guest accounts can track 1 page at a time. Sign in to track more." },
+      { error: "You can track 1 page per browser session." },
       { status: 429 },
     );
   }
