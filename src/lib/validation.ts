@@ -13,7 +13,7 @@ export function validateUrl(url: string): string | null {
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
       return "URL must use http or https";
     }
-    // Best-effort block on localhost/private (hackathon rule: public data only).
+    // Best-effort block on localhost/private networks: public pages only.
     const hostname = parsed.hostname.toLowerCase();
     if (
       hostname === "localhost" ||
