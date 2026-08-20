@@ -33,31 +33,9 @@ The plain-language description is the source of truth: it is used for the initia
 
 Blip is an async job system, not a request/response CRUD app. Scraper Studio operations are slow by design (create: 5-15 min, run: 30-90 s, self-heal: up to 15 min), so every step is a durable job that is tracked, polled, and resumable.
 
-```
-User                    Blip backend                         Bright Data
- │                          │                                     │
- │  POST /watches (url+desc)│                                     │
- ├─────────────────────────>│  enqueue "create" job               │
- │  ← 202 {watch: pending}  │                                     │
- │                          │  create → POST /dca/collector       │
- │                          ├────────────────────────────────────>│  (5-15 min)
- │                          │  poll automate_template             │
- │                          │<────────────────────────────────────┤  collector_id c_*
- │                          │  store c_* on watch                 │
- │                          │  enqueue "run" job                  │
- │                          │  run → POST /dca/trigger?queue_next=1│
- │                          ├────────────────────────────────────>│  (30-90s)
- │                          │  poll /dca/dataset                  │
- │                          │<────────────────────────────────────┤  JSON rows
- │                          │  diff vs previous snapshot          │
- │                          │  (change?) → email + in-app         │
- │                          │  (empty?) → enqueue "heal" job      │
- │                          │  heal → refactor_template + poll    │
- │                          ├────────────────────────────────────>│  (up to 15 min)
- │                          │  resume_automation_job (approve)    │
- │                          │<────────────────────────────────────┤  healed, same c_*
- │                          │  enqueue "run" again                │
-```
+![Blip architecture: the durable watch pipeline, Bright Data integration, and self-healing collector loop](docs/blip-architecture.png)
+
+The production topology keeps Caddy and the Next.js app public while Postgres remains loopback-only. The worker owns the slow Bright Data operations, and the original plain-language description is reused to heal the same `c_*` collector when extraction goes empty.
 
 ### Stack
 
