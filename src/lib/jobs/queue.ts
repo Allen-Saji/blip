@@ -5,6 +5,7 @@ import * as brightdata from "../brightdata/client";
 import { diffSnapshots } from "../diff/engine";
 import { classifyChange } from "../alerts/rules";
 import { validateHealingPreview } from "../healing/validator";
+import { canRetry, retryDelayMs } from "./retry";
 
 const POLL_INTERVAL_MS = 5000;
 const CREATE_TIMEOUT_MS = 25 * 60 * 1000;
@@ -56,15 +57,70 @@ async function claimNextJob(): Promise<JobRow | null> {
 function completeJob(jobId: string) {
   return db
     .update(jobs)
-    .set({ status: "done", finishedAt: new Date() })
+    .set({ status: "done", lockedAt: null, finishedAt: new Date() })
     .where(eq(jobs.id, jobId));
 }
 
 function failJob(jobId: string, error: string) {
   return db
     .update(jobs)
-    .set({ status: "failed", error, finishedAt: new Date() })
+    .set({ status: "failed", lockedAt: null, error, finishedAt: new Date() })
     .where(eq(jobs.id, jobId));
+}
+
+async function setWatchState(
+  watchId: string,
+  status: "creating" | "active" | "healing" | "error",
+  lastError: string | null = null,
+): Promise<void> {
+  await db
+    .update(watches)
+    .set({ status, lastError })
+    .where(eq(watches.id, watchId));
+}
+
+function isRetryableError(error: unknown): boolean {
+  if (error instanceof brightdata.BrightDataError) {
+    return (
+      error.status === 408 ||
+      error.status === 425 ||
+      error.status === 429 ||
+      error.status >= 500
+    );
+  }
+  return true;
+}
+
+async function withTransientRetry<T>(fn: () => Promise<T>): Promise<T> {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (error) {
+      attempt += 1;
+      if (attempt >= 3 || !isRetryableError(error)) throw error;
+      const delay = 1_000 * 2 ** (attempt - 1) + Math.floor(Math.random() * 500);
+      await sleep(delay);
+    }
+  }
+}
+
+async function retryJob(job: JobRow, error: string): Promise<boolean> {
+  if (!canRetry(job.attempts)) return false;
+  const delay = retryDelayMs(job.attempts) + Math.floor(Math.random() * 1_000);
+  await db
+    .update(jobs)
+    .set({
+      status: "queued",
+      lockedAt: null,
+      error,
+      nextRunAt: new Date(Date.now() + delay),
+    })
+    .where(eq(jobs.id, job.id));
+  console.warn(
+    `Job ${job.id} failed on attempt ${job.attempts}; retrying in ${delay}ms`,
+  );
+  return true;
 }
 
 async function pollUntil<T>(
@@ -74,7 +130,7 @@ async function pollUntil<T>(
 ): Promise<T> {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
-    const value = await fn();
+    const value = await withTransientRetry(fn);
     if (isDone(value)) return value;
     await sleep(POLL_INTERVAL_MS);
   }
@@ -111,6 +167,7 @@ async function handleCreate(job: JobRow) {
     .limit(1);
   if (watch.length === 0) throw new Error(`watch ${job.watchId} not found`);
   const w = watch[0];
+  await setWatchState(w.id, "creating");
 
   const collector = await brightdata.createCollector(`blip-${w.id}`);
   await brightdata.createCollectorCode(collector.id, w.description, w.url);
@@ -123,7 +180,7 @@ async function handleCreate(job: JobRow) {
 
   await db
     .update(watches)
-    .set({ collectorId: collector.id, status: "active" })
+    .set({ collectorId: collector.id, status: "active", lastError: null })
     .where(eq(watches.id, w.id));
 
   await enqueueJob("run", w.id);
@@ -191,6 +248,7 @@ async function handleRun(job: JobRow) {
     .where(eq(watches.id, w.id));
 
   if (isEmpty) {
+    await setWatchState(w.id, "healing");
     await enqueueJob("heal", w.id, {
       reason: "empty dataset",
       description: w.description,
@@ -240,11 +298,16 @@ async function handleRun(job: JobRow) {
       }
     }
     if (result.hasMissingFields) {
+      await setWatchState(w.id, "healing");
       await enqueueJob("heal", w.id, {
         reason: "missing fields detected",
         description: w.description,
       });
+    } else {
+      await setWatchState(w.id, "active");
     }
+  } else {
+    await setWatchState(w.id, "active");
   }
 }
 
@@ -261,6 +324,7 @@ async function handleHeal(job: JobRow) {
     .limit(1);
   if (watch.length === 0) throw new Error(`watch ${job.watchId} not found`);
   const w = watch[0];
+  await setWatchState(w.id, "healing");
   if (!w.collectorId) throw new Error(`watch ${w.id} has no collectorId`);
   const collectorId = w.collectorId;
 
@@ -328,7 +392,12 @@ export async function workerTick(): Promise<number> {
     return 1;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    await failJob(job.id, message);
+    if (!(await retryJob(job, message))) {
+      await failJob(job.id, message);
+      if (job.watchId) {
+        await setWatchState(job.watchId, "error", message);
+      }
+    }
     return 1;
   }
 }

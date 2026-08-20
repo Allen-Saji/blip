@@ -32,6 +32,7 @@ export const watches = pgTable(
     channel: text("channel").notNull().default("email"),
     collectorId: text("collector_id"), // c_* (null until created)
     status: text("status").notNull().default("creating"), // creating | active | healing | error
+    lastError: text("last_error"),
     lastRunAt: timestamp("last_run_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },

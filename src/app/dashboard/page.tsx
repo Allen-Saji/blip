@@ -9,6 +9,7 @@ type Watch = {
   description: string;
   alertRule: string;
   status: string;
+  lastError: string | null;
   collectorId: string | null;
   lastRunAt: string | null;
   createdAt: string;
@@ -126,6 +127,11 @@ export default function Dashboard() {
                     {watch.status}
                   </span>
                 </div>
+                {watch.lastError && (
+                  <p className="mt-3 rounded-lg bg-red-50 p-3 text-xs text-red-700">
+                    {watch.lastError}
+                  </p>
+                )}
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-xs text-neutral-400">
                     Last run:{" "}
