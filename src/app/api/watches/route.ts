@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { watches } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { runs, watches } from "@/db/schema";
+import { desc, eq, inArray } from "drizzle-orm";
 import { createWatchSchema, validateUrl } from "@/lib/validation";
 import { enqueueJob } from "@/lib/jobs/queue";
 
@@ -83,11 +83,41 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ watches: [] });
   }
 
-  const result = await db
+  const watchRows = await db
     .select()
     .from(watches)
     .where(eq(watches.sessionId, sessionId))
     .orderBy(desc(watches.createdAt));
 
-  return NextResponse.json({ watches: result });
+  if (watchRows.length === 0) {
+    return NextResponse.json({ watches: [] });
+  }
+
+  const runRows = await db
+    .select({
+      id: runs.id,
+      watchId: runs.watchId,
+      status: runs.status,
+      snapshotId: runs.snapshotId,
+      rawJson: runs.rawJson,
+      error: runs.error,
+      finishedAt: runs.finishedAt,
+    })
+    .from(runs)
+    .where(inArray(runs.watchId, watchRows.map((watch) => watch.id)))
+    .orderBy(desc(runs.finishedAt));
+
+  const latestRuns = new Map<string, (typeof runRows)[number]>();
+  for (const run of runRows) {
+    if (!latestRuns.has(run.watchId)) {
+      latestRuns.set(run.watchId, run);
+    }
+  }
+
+  return NextResponse.json({
+    watches: watchRows.map((watch) => ({
+      ...watch,
+      latestRun: latestRuns.get(watch.id) ?? null,
+    })),
+  });
 }
