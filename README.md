@@ -34,6 +34,35 @@ The plain-language description is the source of truth: it is used for the initia
 - **In-app dashboard:** watch status, run history, and a chronological feed of detected changes.
 - **Public data only:** URL validation rejects localhost and private-network targets.
 
+## Use cases
+
+Blip is useful when the value inside a page matters more than the page itself. A user describes the signal once, and Blip keeps checking the public source, reports meaningful changes, and repairs the collector if the layout moves.
+
+1. **Niche price and inventory monitoring**
+   - **Watch:** A regional store or specialist marketplace that is not covered by a pre-built scraper.
+   - **Describe:** "Tell me when this laptop drops below $900 or comes back in stock."
+   - **Outcome:** The user receives a focused price or availability diff instead of a full-page HTML dump.
+
+2. **Competitive intelligence**
+   - **Watch:** A competitor's public changelog, release notes, pricing page, or product directory.
+   - **Describe:** "Tell me when a new release is published or the Pro plan price changes."
+   - **Outcome:** Product and sales teams see what changed without manually checking several sites every week.
+
+3. **Grant and procurement deadline tracking**
+   - **Watch:** A public grant, tender, fellowship, or government procurement page.
+   - **Describe:** "Watch the application deadline, eligibility requirements, and award amount."
+   - **Outcome:** Teams get alerted when a deadline or requirement changes, even when the organisation redesigns its site.
+
+4. **Market and listing research**
+   - **Watch:** Public job listings, equipment listings, event pages, or local marketplace results.
+   - **Describe:** "Track the closing date, price, location, and availability for this listing."
+   - **Outcome:** Researchers receive structured updates that can feed a dashboard, database, or follow-up workflow.
+
+5. **Documentation and policy monitoring**
+   - **Watch:** Public API documentation, security advisories, terms, or policy pages.
+   - **Describe:** "Tell me when the authentication requirements or rate limits change."
+   - **Outcome:** Developers and compliance teams get a readable before-and-after record of important public changes.
+
 ## Architecture
 
 Blip is an async job system, not a request/response CRUD app. Scraper Studio operations are slow by design (create: 5-15 min, run: 30-90 s, self-heal: up to 15 min), so every step is a durable job that is tracked, polled, and resumable.
