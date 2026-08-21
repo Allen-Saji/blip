@@ -6,10 +6,8 @@
  * diff summary so a summary outage never blocks a notification.
  */
 
-const API_URL =
-  process.env.CMD_PROVIDER_URL ??
-  "https://api.commandcode.ai/provider/v1/chat/completions";
-const MODEL = process.env.CMD_SUMMARY_MODEL ?? "poolside/laguna-s-2.1-free";
+const DEFAULT_API_URL = "https://api.commandcode.ai/provider/v1/chat/completions";
+const DEFAULT_MODEL = "poolside/laguna-s-2.1-free";
 const TIMEOUT_MS = 20_000;
 
 export function isSummarizerConfigured(): boolean {
@@ -25,6 +23,10 @@ export async function generateChangeSummary(opts: {
   if (!apiKey) return null;
   if (opts.diff.length === 0) return null;
 
+  // Resolved per call so overrides work after module load (and in tests).
+  const apiUrl = process.env.CMD_PROVIDER_URL ?? DEFAULT_API_URL;
+  const model = process.env.CMD_SUMMARY_MODEL ?? DEFAULT_MODEL;
+
   const changesText = opts.diff
     .map(
       (entry) =>
@@ -36,7 +38,7 @@ export async function generateChangeSummary(opts: {
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    const res = await fetch(API_URL, {
+    const res = await fetch(apiUrl, {
       method: "POST",
       signal: controller.signal,
       headers: {
@@ -44,7 +46,7 @@ export async function generateChangeSummary(opts: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: MODEL,
+        model,
         messages: [
           {
             role: "system",

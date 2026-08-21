@@ -6,6 +6,17 @@ const resend = process.env.RESEND_API_KEY
 
 const FROM = process.env.RESEND_FROM ?? "Blip <onboarding@resend.dev>";
 
+// Watch URLs, descriptions, and scraped values are external input; escape
+// them before they go into the HTML body.
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 export async function sendChangeEmail(opts: {
   to: string;
   watchUrl: string;
@@ -18,13 +29,15 @@ export async function sendChangeEmail(opts: {
     return;
   }
 
-  const lead = opts.aiSummary ?? opts.summary;
+  const lead = escapeHtml(opts.aiSummary ?? opts.summary);
   const detail =
     opts.aiSummary != null
       ? `<p style="font-size: 13px; line-height: 1.5; color: #525252; margin: 8px 0 0;">
-           Field-level diff: ${opts.summary}
+           Field-level diff: ${escapeHtml(opts.summary)}
          </p>`
       : "";
+  const url = escapeHtml(opts.watchUrl);
+  const description = escapeHtml(opts.watchDescription);
 
   const { error } = await resend.emails.send({
     from: FROM,
@@ -38,8 +51,8 @@ export async function sendChangeEmail(opts: {
         </p>
         ${detail}
         <p style="font-size: 14px; color: #525252; margin-top: 16px;">
-          Watching: ${opts.watchUrl}<br />
-          <em>${opts.watchDescription}</em>
+          Watching: ${url}<br />
+          <em>${description}</em>
         </p>
       </div>
     `,
