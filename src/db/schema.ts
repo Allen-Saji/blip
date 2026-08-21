@@ -50,7 +50,7 @@ export const runs = pgTable(
     watchId: uuid("watch_id")
       .notNull()
       .references(() => watches.id, { onDelete: "cascade" }),
-    status: text("status").notNull().default("queued"), // queued | running | succeeded | empty | failed
+    status: text("status").notNull().default("queued"), // queued | running | succeeded | degraded | empty | failed
     snapshotId: text("snapshot_id"), // j_* (collection_id)
     rawJson: jsonb("raw_json"),
     error: text("error"),

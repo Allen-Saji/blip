@@ -233,10 +233,15 @@ async function handleRun(job: JobRow) {
 
   const beforeJson = prevRun[0]?.rawJson ?? null;
 
+  // A run that returned rows but dropped fields present in the last good
+  // snapshot is degraded: it must not become the heal validator's baseline.
+  const diffPreview = beforeJson ? diffSnapshots(beforeJson, afterJson) : null;
+  const degraded = Boolean(diffPreview?.hasMissingFields);
+
   await db
     .update(runs)
     .set({
-      status: isEmpty ? "empty" : "succeeded",
+      status: isEmpty ? "empty" : degraded ? "degraded" : "succeeded",
       rawJson: afterJson as never,
       finishedAt: new Date(),
     })
@@ -258,8 +263,8 @@ async function handleRun(job: JobRow) {
 
   // Diff against previous snapshot. Only create a change row if something
   // semantically changed.
-  if (beforeJson) {
-    const result = diffSnapshots(beforeJson, afterJson);
+  if (beforeJson && diffPreview) {
+    const result = diffPreview;
     const classification = classifyChange(result, w.alertRule);
     if (result.diff.length > 0) {
       // AI summary is best-effort: falls back to the mechanical summary.
