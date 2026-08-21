@@ -26,6 +26,7 @@ type Change = {
   change: {
     id: string;
     summary: string;
+    aiSummary: string | null;
     beforeJson: unknown;
     afterJson: unknown;
     classification: string;
@@ -196,7 +197,7 @@ export default function Dashboard() {
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="text-sm font-medium text-neutral-900">
-                            {change.summary}
+                            {change.aiSummary ?? change.summary}
                           </p>
                           <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-500">
                             {change.classification.replaceAll("_", " ")}

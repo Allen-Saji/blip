@@ -11,11 +11,20 @@ export async function sendChangeEmail(opts: {
   watchUrl: string;
   watchDescription: string;
   summary: string;
+  aiSummary?: string | null;
 }): Promise<void> {
   if (!resend) {
     console.warn("RESEND_API_KEY not set; skipping email send.");
     return;
   }
+
+  const lead = opts.aiSummary ?? opts.summary;
+  const detail =
+    opts.aiSummary != null
+      ? `<p style="font-size: 13px; line-height: 1.5; color: #525252; margin: 8px 0 0;">
+           Field-level diff: ${opts.summary}
+         </p>`
+      : "";
 
   const { error } = await resend.emails.send({
     from: FROM,
@@ -25,8 +34,9 @@ export async function sendChangeEmail(opts: {
       <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto;">
         <h1 style="font-size: 20px; margin: 0 0 12px;">You never miss a blip.</h1>
         <p style="font-size: 16px; line-height: 1.5; color: #0a0a0a;">
-          ${opts.summary}
+          ${lead}
         </p>
+        ${detail}
         <p style="font-size: 14px; color: #525252; margin-top: 16px;">
           Watching: ${opts.watchUrl}<br />
           <em>${opts.watchDescription}</em>

@@ -262,6 +262,14 @@ async function handleRun(job: JobRow) {
     const result = diffSnapshots(beforeJson, afterJson);
     const classification = classifyChange(result, w.alertRule);
     if (result.diff.length > 0) {
+      // AI summary is best-effort: falls back to the mechanical summary.
+      const { generateChangeSummary } = await import("../summarize");
+      const aiSummary = await generateChangeSummary({
+        watchUrl: w.url,
+        watchDescription: w.description,
+        diff: result.diff,
+      });
+
       const inserted = await db
         .insert(changes)
         .values({
@@ -270,6 +278,7 @@ async function handleRun(job: JobRow) {
           beforeJson: beforeJson as never,
           afterJson: afterJson as never,
           summary: result.summary,
+          aiSummary: aiSummary ?? null,
           classification: classification.classification,
         })
         .returning();
@@ -284,6 +293,7 @@ async function handleRun(job: JobRow) {
             watchUrl: w.url,
             watchDescription: w.description,
             summary: result.summary,
+            aiSummary,
           });
           await db
             .update(changes)
