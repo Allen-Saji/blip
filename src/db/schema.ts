@@ -74,6 +74,9 @@ export const changes = pgTable(
     beforeJson: jsonb("before_json"),
     afterJson: jsonb("after_json"),
     summary: text("summary").notNull(),
+    // AI-generated plain-language summary (null when the summarizer is off
+    // or failed; the mechanical summary is always present).
+    aiSummary: text("ai_summary"),
     classification: text("classification")
       .notNull()
       .default("meaningful_change"),
