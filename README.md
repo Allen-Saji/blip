@@ -21,7 +21,7 @@ Scrapers work in testing, then break quietly the first time a site changes a cla
 
 1. **Describe once.** Paste a URL and describe the field you care about in plain language ("the price", "whether it is in stock"). No selectors, no code.
 2. **Watch.** Scraper Studio extracts that field as structured data. Blip snapshots it on a schedule (hourly, daily, or weekly).
-3. **Detect.** When the structured output changes, Blip diffs it and produces a readable "what changed" message.
+3. **Detect.** When the structured output changes, Blip deep-diffs it and generates a one-sentence AI summary when the summary provider is configured. The field-level diff remains the source of truth.
 4. **Self-heal.** When a site redesigns and extraction comes back empty, Blip hands Scraper Studio the original plain-language description. Scraper Studio rewrites the extraction, the collector heals itself, and the data keeps flowing. The user never sees a gap.
 
 The plain-language description is the source of truth: it is used for the initial scrape *and* for repair.
@@ -29,7 +29,7 @@ The plain-language description is the source of truth: it is used for the initia
 ## Features
 
 - **Guest-first:** no signup. Paste a URL, type what to watch, and get one free watch immediately.
-- **Clean diffs by email:** when a watched value changes, Blip sends a human-readable diff (before → after) via [Resend](https://resend.com).
+- **Clear change emails:** when a watched value changes, Blip sends a plain-language AI summary when available, with the field-level before/after diff retained as detail via [Resend](https://resend.com).
 - **Self-healing scrapers:** extraction failures automatically trigger a repair loop against the original description, verified live against a controlled redesign fixture.
 - **In-app dashboard:** watch status, run history, and a chronological feed of detected changes.
 - **Hackathon-safe targets:** URL validation accepts only public, non-government pages during Into the Scrape-Verse. It rejects local, private-network, credentialed, and government URLs.
@@ -100,7 +100,8 @@ AI coding assistants were used as implementation support. The participant made t
 | Database | Postgres + Drizzle ORM |
 | Scraping | Bright Data Scraper Studio via REST API |
 | Jobs | Postgres-backed queue + worker (`FOR UPDATE SKIP LOCKED`, idempotent handlers) |
-| Diff | JSON deep-diff + mechanical summary (no LLM dependency) |
+| Diff | JSON deep-diff + mechanical fallback summary |
+| AI summaries | Command Code Provider API (OpenAI-compatible, `poolside/laguna-s-2.1-free`) |
 | Notify | Resend (email) + in-app changes feed |
 
 ### Why a Postgres-backed job queue
@@ -129,9 +130,10 @@ src/
   db/                     Drizzle schema + migrations
   lib/
     brightdata/           typed Scraper Studio REST client (create/run/heal)
-    diff/                 JSON deep-diff engine + mechanical summary (+ unit tests)
+    diff/                 JSON deep-diff engine + mechanical fallback (+ unit tests)
     jobs/                 Postgres job queue, worker loop, scheduler
     email.ts              Resend integration
+    summarize.ts          AI change-summary client with mechanical fallback
     validation.ts         Zod schemas + URL validation (public-only)
 scripts/
   brightdata-contract.ts  live API contract test (create → run → heal → run)
@@ -162,6 +164,9 @@ npx tsx worker.ts         # job worker + scheduler (separate terminal)
 | `BRIGHTDATA_API_TOKEN` | yes | Bright Data API token for Scraper Studio REST calls |
 | `RESEND_API_KEY` | no | Resend key for email notifications |
 | `RESEND_FROM` | no | From address for change emails (defaults to `onboarding@resend.dev`) |
+| `CMD_API_KEY` | no | Command Code Provider API key for AI change summaries |
+| `CMD_PROVIDER_URL` | no | Override for the OpenAI-compatible summary endpoint |
+| `CMD_SUMMARY_MODEL` | no | Override for the AI summary model |
 
 ### Tests
 
