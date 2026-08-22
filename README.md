@@ -32,7 +32,7 @@ The plain-language description is the source of truth: it is used for the initia
 - **Clean diffs by email:** when a watched value changes, Blip sends a human-readable diff (before → after) via [Resend](https://resend.com).
 - **Self-healing scrapers:** extraction failures automatically trigger a repair loop against the original description, verified live against a controlled redesign fixture.
 - **In-app dashboard:** watch status, run history, and a chronological feed of detected changes.
-- **Public data only:** URL validation rejects localhost and private-network targets.
+- **Hackathon-safe targets:** URL validation accepts only public, non-government pages during Into the Scrape-Verse. It rejects local, private-network, credentialed, and government URLs.
 
 ## Use cases
 
@@ -48,8 +48,8 @@ Blip is useful when the value inside a page matters more than the page itself. A
    - **Describe:** "Tell me when a new release is published or the Pro plan price changes."
    - **Outcome:** Product and sales teams see what changed without manually checking several sites every week.
 
-3. **Grant and procurement deadline tracking**
-   - **Watch:** A public grant, tender, fellowship, or government procurement page.
+3. **Grant and fellowship deadline tracking**
+   - **Watch:** A public foundation, fellowship, accelerator, or scholarship page.
    - **Describe:** "Watch the application deadline, eligibility requirements, and award amount."
    - **Outcome:** Teams get alerted when a deadline or requirement changes, even when the organisation redesigns its site.
 
@@ -70,6 +70,27 @@ Blip is an async job system, not a request/response CRUD app. Scraper Studio ope
 ![Blip architecture: the durable watch pipeline, Bright Data integration, and self-healing collector loop](docs/blip-architecture.png)
 
 The production topology keeps Caddy and the Next.js app public while Postgres remains loopback-only. The worker owns the slow Bright Data operations, and the original plain-language description is reused to heal the same `c_*` collector when extraction goes empty.
+
+### Example structured output
+
+The controlled public fixture used in the demo produces a structured record like this:
+
+```json
+[
+  {
+    "name": "Aurora X9 Wireless Earbuds",
+    "price": { "value": 189, "currency": "USD", "symbol": "$" },
+    "stock": "In stock",
+    "rating": 4.8
+  }
+]
+```
+
+After a public price and inventory update, the same collector produces `price.value: 189 -> 109` and `stock: In stock -> Low stock - 3 left`. A layout redesign that returns an empty or degraded record triggers the self-heal flow.
+
+### AI assistance disclosure
+
+AI coding assistants were used as implementation support. The participant made the product and technical decisions, reviewed the code, and verified the test suite and live Bright Data create, run, change, self-heal, recovery, and email flows.
 
 ### Stack
 
